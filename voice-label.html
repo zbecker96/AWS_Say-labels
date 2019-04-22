@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Voice Photo Labels</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Uncomment and modify these to match your API endpoint 
+        // NOTE: The Javascript further down will add the voice to the end of this url
+
+        // Remember that the endpoint path my be your (and your partner's) initials
+        // so for instance, my local endpoint would be http://localhost:8000/pv
+        // const API_ENDPOINT = ' https://z7w0bskkvf.execute-api.us-east-1.amazonaws.com/api/YOUR INITIALS HERE'
+
+
+        const API_ENDPOINT = 'http://127.0.0.1:8000/zb'
+    </script>
+</head>
+
+<body class="container" id="content">
+    <h1>Voice Photo Labelling</h1>
+    <p>Upload a jpeg or png file to get a sound file of the objects in the image.</p>
+
+
+    <input type="file" class="filestyle" accept="image/png, image/jpeg, image/jpg" id="pic" name="pic">
+    <button id="upload" class="buttons">Upload</button>
+    <p> Voice:
+        <select id="voiceSelected">
+            <option value="Salli">Salli US English</option>
+            <option value="Matthew">Matthew US English</option>
+            <option value="Kimberly">Kimberly US English</option>
+            <option value="Kendra">Kendra US English</option>
+            <option value="Justin">Justin US English</option>
+            <option value="Joey">Joey US English</option>
+            <option value="Joanna">Joanna US English</option>
+            <option value="Ivy">Ivy US English</option>
+            <option value="Russell">Russell Australian English</option>
+            <option value="Nicole">Nicole Australian English</option>
+            <option value="Vitoria">Vitória Brazilian Portuguese</option>
+            <option value="Ricardo">Ricardo Brazilian Portuguese</option>
+            <option value="Emma">Emma British English</option>
+            <option value="Brian">Brian British English</option>
+            <option value="Amy">Amy British English</option>
+            <option value="Chantal">Chantal Canadian French</option>
+            <option value="Enrique">Enrique Castilian Spanish</option>
+            <option value="Conchita">Conchita Castilian Spanish</option>
+            <option value="Zhiyu">Zhiyu Chinese Mandarin</option>
+            <option value="Naja">Naja Danish</option>
+            <option value="Mads">Mads Danish</option>
+            <option value="Ruben">Ruben Dutch</option>
+            <option value="Lotte">Lotte Dutch</option>
+            <option value="Mathieu">Mathieu French</option>
+            <option value="Lea">Léa French</option>
+            <option value="Celine">Céline French</option>
+            <option value="Vicki">Vicki German</option>
+            <option value="Marlene">Marlene German</option>
+            <option value="Hans">Hans German</option>
+            <option value="Karl">Karl Icelandic</option>
+            <option value="Dora">Dóra Icelandic</option>
+            <option value="Raveena">Raveena Indian English</option>
+            <option value="Aditi">Aditi Indian English</option>
+            <option value="Giorgio">Giorgio Italian</option>
+            <option value="Carla">Carla Italian</option>
+            <option value="Takumi">Takumi Japanese</option>
+            <option value="Mizuki">Mizuki Japanese</option>
+            <option value="Seoyeon">Seoyeon Korean</option>
+            <option value="Liv">Liv Norwegian</option>
+            <option value="Maja">Maja Polish</option>
+            <option value="Jan">Jan Polish</option>
+            <option value="Jacek">Jacek Polish</option>
+            <option value="Ewa">Ewa Polish</option>
+            <option value="Ines">Inês Portuguese</option>
+            <option value="Cristiano">Cristiano Portuguese</option>
+            <option value="Carmen">Carmen Romanian</option>
+            <option value="Tatyana">Tatyana Russian</option>
+            <option value="Maxim">Maxim Russian</option>
+            <option value="Astrid">Astrid Swedish</option>
+            <option value="Filiz">Filiz Turkish</option>
+            <option value="Penelope">Penélope US Spanish</option>
+            <option value="Miguel">Miguel US Spanish</option>
+            <option value="Gwyneth">Gwyneth Welsh</option>
+            <option value="Geraint">Geraint Welsh English</option>
+        </select>
+    </p>
+    <ul id="images">
+
+    </ul>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="bootstrap-filestyle.min.js">
+    </script>
+
+    <script>
+
+        function createCORSRequest(method, url) {
+            // taken from,
+            // https://www.html5rocks.com/en/tutorials/cors/#toc-end-to-end-example,
+            // last access 11/4/2017
+            var xhr = new XMLHttpRequest();
+            if ("withCredentials" in xhr) {
+                // XHR for Chrome/Firefox/Opera/Safari.
+                xhr.open(method, url, true);
+            } else
+            if (typeof XDomainRequest != "undefined") {
+                // XDomainRequest for IE.
+                console.log('XDomainRequest');
+                xhr = new XDomainRequest();
+                xhr.open(method, url);
+            } else {
+                // CORS not supported.
+                xhr = null;
+            }
+            return xhr;
+        }
+
+        function image_mime_type(filename) {
+            filename = filename.toLowerCase();
+            if (filename.endsWith('jpg') || filename.endsWith('jpeg')) {
+                return 'image/jpeg';
+            } else if (filename.endsWith('png')) {
+                return 'image/png';
+            } else if (filename.endsWith('gif')) {
+                return 'image/gif';
+            }
+            return '';
+        }
+
+        $(document).on("click", "#upload", () => {
+            console.log('Uploading');
+            const file = $("#pic").prop("files")[0];
+            console.log(file);
+
+            const voice = $('#voiceSelected option:selected').val()
+            // add voice to the end of the API_ENDPOINT (checking to see if we also need to add /)
+            const api_endpoint = API_ENDPOINT + (API_ENDPOINT.endsWith('/') ? '' : '/') + voice;
+            
+
+            // taken from
+            // https://www.html5rocks.com/en/tutorials/file/xhr2/#toc-send-blob,
+            // last access 11/4/2017
+            const oReq = createCORSRequest('POST', api_endpoint);
+            const mimeType = image_mime_type(file.name);
+            if (mimeType == '') {
+                alert('Invalid filetype!');
+                return;
+            }
+            //            console.log('mimeType', mimeType);
+            oReq.setRequestHeader("Content-type", mimeType);
+            oReq.setRequestHeader("Accept", "application/json");
+            oReq.open("POST", api_endpoint, true);
+            oReq.withCredentials = false;
+            oReq.onerror = function (e) {
+                    alert('Error sending/receiving image');
+                    console.log(e);
+                }
+                // handle response of uploading image
+            oReq.onloadend = function (oEvent) {
+                console.log('onloadend');
+                if (oReq.status != 200) {
+                    // Fail!
+                    return;
+                }
+                const reader = new FileReader();
+                resp = JSON.parse(oReq.response);
+                console.log('Got result, ', resp);
+                const voice = resp["voice"];
+                const labels = resp['labels'];
+                const url = resp['url'];
+                console.log('voice', voice);
+                const player = "<audio controls><source src='" + url + "' type='audio/mpeg'></audio>"
+                reader.onloadend = function (e) {
+                    console.log('File read, adding file');
+
+                    $('#images').prepend(
+                        '<li>' + '<img src="' + e.target.result + '"><br>\n' + labels + '<br>\n' + voice + ' ' + player + '</li>\n'
+                    );
+                }
+                reader.readAsDataURL(file);
+            };
+
+            oReq.send(file);
+
+        });
+    </script>
+</body>
+
+</html>
